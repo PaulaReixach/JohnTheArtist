@@ -1,7 +1,7 @@
 separa (Avança 3 :#: Gira 4 :#: Gira 9 :#: Avança 7 :#: Para)
 ajunta [Avança 3.0,Gira 4.0,Gira 9.0,Avança 7.0]
 prop_equivalent (Avança 3 :#: Para :#: Gira 4 :#: Avança 5) (Avança 3 :#: Gira 4 :#: Avança 5)
-prop_split_join (Avança 6)
+prop_split_join (Avança 3 :#: Gira 4 :#: Avança 5 :#: Para)
 prop_split (Avança 3 :#: Para :#: Gira 4 :#: Avança 5)
 prop_poligon_pentagon 50 5 72 50
 copia 4 (Avança 3 :#: Gira 40)
