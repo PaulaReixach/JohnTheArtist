@@ -1,0 +1,22 @@
+separa (Avança 3 :#: Gira 4 :#: Gira 9 :#: Avança 7 :#: Para)
+ajunta [Avança 3.0,Gira 4.0,Gira 9.0,Avança 7.0]
+prop_equivalent (Avança 3 :#: Para :#: Gira 4 :#: Avança 5) (Avança 3 :#: Gira 4 :#: Avança 5)
+prop_split_join (Avança 6)
+prop_split (Avança 3 :#: Para :#: Gira 4 :#: Avança 5)
+prop_poligon_pentagon 50 5 72 50
+copia 4 (Avança 3 :#: Gira 40)
+pentagon 50 
+poligon 30 4 72
+espiral 30 20 5 40
+display $ triangle 6 
+display $ triangle 3 
+display $ fulla 6
+display $ fulla 3 
+display $ hilbert 6
+display $ hilbert 3
+display $ fletxa 6 
+display $ fletxa 3 
+display $ branca 6 
+display $ branca 3 
+display $ extra 6 
+display $ extra 3 
