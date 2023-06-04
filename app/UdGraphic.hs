@@ -1,7 +1,11 @@
 module UdGraphic (
     Comanda(..),
     Distancia,
-    Angle
+    Angle, 
+    execute, 
+    display, 
+    blau, vermell,
+    negre, verd
     )
     where
 
@@ -60,6 +64,7 @@ sizeToPoint (Size x y) = Pnt (fromIntegral x) (fromIntegral y)
 
 data Llapis = Color' GL.GLfloat GL.GLfloat GL.GLfloat
             | Transparent
+            | Inkless
             deriving (Eq, Ord, Show)
 
 pencilToRGB :: Llapis -> GL.Color3 GL.GLfloat
@@ -138,14 +143,51 @@ type Distancia = Float
 data Comanda   = Avança Distancia
                | Gira Angle
                | Comanda :#: Comanda
-
+               | Para
+               | Branca Comanda
+               | CanviaColor Llapis
+  deriving (Show,Eq,Ord)
 
 -- Problema 8
--- Pas de comandes a lines a pintar per GL graphics
-
+-- Pas de comandes a lines a pintar per GL graphics (veure per pantalla les comandes)
+-- genera les linies a pintar per UdGraphic
 execute :: Comanda -> [Ln]
-execute c  =  undefined
+execute c = execute2 c 0.0 0.0 0                            -- crida a una funció secundaria execute amb la comanda i les inicialitzacions dels punts i l'alngle inicial
 
+-- Funció secunadria 
+-- Aquesta funció crea les línies  amb els càlculs dels punts interpol·lats, que mostrarà el display
+-- En els següents comenteris quan posem tenim, volem dir com a head de la Comanda
+execute2 :: Comanda -> Float -> Float -> Angle-> [Ln]       
+execute2 (Gira angle :#: xs) x y angl = execute2 xs x y (angl+angle)                                                                      -- Si tenim un Gira + la resta de la comanda, incrementem l'angle 
+execute2 (CanviaColor color :#: Avança dist :#: xs) x y angl =  let xNou =(x+(dist*cos(degToRad (-angl))))                                -- Si tenim un Canvi de color i un avança (i la resta de la comanda) aixo ens indica que hem de canviar el color del llapis i avançar la linia segons l'angle que teniem
+                                                                    yNou = (y+(dist*sin(degToRad ((-angl)))))                             -- Calculem la x i la y nova dels punts interpol·lats
+                                                                in  [Ln (color) (Pnt x y) (Pnt xNou yNou)] ++ execute2 xs xNou yNou angl  -- Creació de la linia amb el color, el punt anterior i el següent punt (novament calculat) i apliquem execute a la resta de la comanda amb els nou calculs
+
+execute2 (Avança dist :#: xs) x y angl =  let xNou =(x+(dist*cos(degToRad (-angl))))                                                      -- Si tenim un Avança, una distancia i la resta de la comanda 
+                                              yNou = (y+(dist*sin(degToRad ((-angl)))))                                                   -- Calculem la x i la y nova dels punts interpol·lats
+                                          in  [Ln (negre) (Pnt x y) (Pnt xNou yNou)] ++ execute2 xs xNou yNou angl                        -- Creació de la linia amb el color (negre/default), el punt anterior i el següent punt (novament calculat) i apliquem execute a la resta de la comanda amb els nou calculs
+
+execute2 (CanviaColor color :#: Avança dist) x y angl = let xNou =(x+(dist*cos(degToRad (-angl))))                                        -- Si tenim un Canvi de color i un avança aixo ens indica que hem de canviar el color del llapis i avançar la linia segons l'angle que teniem
+                                                            yNou = (y+(dist*sin(degToRad ((-angl)))))                                     -- Calculem la x i la y nova dels punts interpol·lats
+                                                        in  [Ln (color) (Pnt x y) (Pnt xNou yNou)]                                        -- Creació de la linia amb el color, el punt anterior i el següent punt (novament calculat) i apliquem execute a la resta de la comanda amb els nou calculs
+
+execute2 (Avança dist) x y angl = let xNou =(x+(dist*cos(degToRad (-angl))))                                                              -- Si tenim un Avança només
+                                      yNou = (y+(dist*sin(degToRad ((-angl)))))                                                           -- Calculem la x i la y nova dels punts interpol·lats
+                                  in  [Ln (negre) (Pnt x y) (Pnt xNou yNou)]                                                              -- Creació de la linia amb el color (negre/default), el punt anterior i el següent punt (novament calculat) i apliquem execute a la resta de la comanda amb els nou calculs
+                                  
+execute2 (Branca c :#: xs) x y angl = (execute2 c x y angl) ++ (execute2 xs x y angl)                                                     -- Si tenim una Branca com a comanda significa que a dins tindrem mes comandes per lo tant fem una crida recursiva de l'execute2 amb la comanda de l'interior de la branca (on s'aniran modificant els valors) i amb els punts originals també els passem a la resta de la comanda
+execute2 (Branca c) x y angl = execute2 c x y angl                                                                                        -- Si nomes tenim Brnca sola, farem la crida recursiva a la comanda interna de la Branca amb els mateixos valors
+execute2 (Para :#: xs) x y angl = execute2 xs x y angl                                                                                    -- Si tenim un Para i la resta de la comanda, ignorarem el Para i aplicarem la recursió a la resta de la comanda "com si no hi fos"
+execute2 ((c1 :#: c2) :#: c3) x y angl =  execute2 (c1 :#: c2 :#: c3) x y angl                                                            -- Si tenim més parèntiesis perquè tenim una comanda dins una altre comanda (varies comandes (Branca)), aplicarem l'execute2 recursivament a les x comandes obviant els parentesisj
+execute2 (_) x y angl = []                                                                                                                -- En cas de tenir qualsevol altre cosa, l'execute 2 retornara una llista buida
+
+-- Pels punts d'interpol·lació hem fet servir la seguent expressions aritmètiques:
+-- x' = x1 + r * cos(α + θ)
+-- y' = y1 + r * sin(α + θ)
+
+-- Funció que ens permet passar els radiants en format graus
+degToRad :: Float -> Float                                                                                                                
+degToRad degrees = degrees * pi / 180.0                                                                                                   -- un cop ens han passat els radiants apliquem la formula per passar a graus i retornem els graus en tipus Float                                                                                               -- 
 
 -- Rescales all points in a list of lines
 --  from an arbitrary scale
